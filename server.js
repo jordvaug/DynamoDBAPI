@@ -37,6 +37,37 @@ app.get("/rows/all", (req, res) => {
     });
 });
 
+app.get("/rows/events_after_date", (req, res) => {
+    AWS.config.update(config.aws_remote_config);
+    const client = new AWS.DynamoDB.DocumentClient();
+
+    date = req.query.date;
+    console.log(date);
+
+    var params = {
+        TableName: process.env.TABLE,
+        region: process.env.REGION,
+        ExpressionAttributeValues: {
+            ":var0": date
+        },
+        FilterExpression: "CreatedOn >= :var0"
+    };
+
+    client.scan(params, (err, data) => {
+        if (err) {
+            console.log(err);
+        } else {
+            var items = [];
+            data.Items.forEach(function(item) {
+                items.push(item);
+            });
+            res.contentType = 'application/json';
+            res.send(items);
+        }
+    });
+});
+
+
 app.post('/marketingevent', (req, res) => {
 
     AWS.config.update(config.aws_remote_config);
@@ -70,4 +101,3 @@ app.post('/marketingevent', (req, res) => {
 app.listen(5000, () => {
     console.log(`Listening on port 5000`);
 });
- 
